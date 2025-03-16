@@ -36,6 +36,9 @@ def upload_files():
 
     return jsonify(results)
 
+@app.route("/", methods=["GET"])
+def home():
+    return jsonify({"message": "JD-CV Matching Backend is Live 🚀"}), 200
 
 if __name__ == '__main__':
     app.run(debug=True)
