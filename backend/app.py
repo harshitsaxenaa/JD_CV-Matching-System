@@ -4,24 +4,20 @@ from flask_cors import CORS
 from utils.matcher import match_cvs_to_jd
 import os
 
-# Tell Flask where to find the frontend
-app = Flask(__name__, static_folder='frontend', static_url_path='')
+app = Flask(__name__, static_folder=os.path.join(os.path.pardir, 'frontend'), static_url_path='')
 CORS(app)
 
 UPLOAD_FOLDER = 'backend/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# Serve the frontend (index.html)
 @app.route('/')
 def serve_frontend():
     return send_from_directory(app.static_folder, 'index.html')
 
-# Serve static assets (JS, CSS, images)
 @app.route('/<path:path>')
 def serve_static_files(path):
     return send_from_directory(app.static_folder, path)
 
-# Your API route
 @app.route('/upload', methods=['POST'])
 def upload_files():
     jd_file = request.files['jd']
@@ -41,10 +37,9 @@ def upload_files():
 
     return jsonify(results)
 
-# Optional: Health check endpoint
 @app.route("/health", methods=["GET"])
 def health():
-    return jsonify({"message": "JD-CV Matching Backend is Live 🚀"}), 200
+    return jsonify({"message": "JD-CV Matching Backend is Live "}), 200
 
 if __name__ == '__main__':
     app.run(debug=True)
