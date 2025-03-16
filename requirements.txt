@@ -1,7 +1,7 @@
-
 Flask
+flask-cors
 sentence-transformers
-torch
-Pdfplumber
+PyMuPDF
 python-docx
+docx2txt
 gunicorn
