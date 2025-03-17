@@ -4,7 +4,8 @@ from utils.parser import extract_text
 from utils.matcher import match_cvs_to_jd
 import os
 
-app = Flask(__name__, app = Flask(__name__, static_folder='../frontend', static_url_path=''), static_url_path='')
+app = Flask(__name__, static_folder='../frontend', static_url_path='')
+
 
 
 CORS(app, resources={r"/*": {"origins": "https://jd-cv-matching-system.onrender.com"}})
@@ -46,4 +47,6 @@ def health():
     return jsonify({"message": "JD-CV Matching Backend is Live "}), 200
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
+
