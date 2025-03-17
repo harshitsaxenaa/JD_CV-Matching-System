@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>JD-CV Matcher - IntelliHire</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
+    <meta charset="UTF-8">
+    <title>IntelliHire - Resume Matcher</title>
+    <style>
         body {
             margin: 0;
             font-family: Arial, sans-serif;
@@ -17,9 +16,7 @@
             min-height: 100vh;
             padding: 20px;
         }
-        h1 {
-            animation: fadeIn 2s ease-in-out;
-        }
+        h1 { animation: fadeIn 2s ease-in-out; }
         form {
             background: rgba(255, 255, 255, 0.1);
             padding: 20px;
@@ -62,92 +59,58 @@
             border: 1px solid #ccc;
             text-align: left;
         }
-        th {
-            background-color: #1f3b4d;
-        }
-        tr:nth-child(even) {
-            background-color: rgba(255, 255, 255, 0.05);
-        }
-        tr:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(-30px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
+        th { background-color: #1f3b4d; }
+        tr:nth-child(even) { background-color: rgba(255, 255, 255, 0.05); }
+        tr:hover { background-color: rgba(255, 255, 255, 0.1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
     </style>
 </head>
 <body>
-  <h1>JD-CV Matcher - IntelliHire</h1>
-
-  <form id="uploadForm">
-    <div>
-      <label><strong>Upload Job Description (JD):</strong></label><br>
-      <input type="file" name="jd" accept=".pdf,.docx,.txt" required>
-    </div>
-    <div>
-      <label><strong>Upload CVs (up to 5):</strong></label><br>
-      <input type="file" name="cvs" accept=".pdf,.docx,.txt" multiple required>
-    </div>
-    <button type="submit">Match</button>
-  </form>
-
-  <div id="result"></div>
-
-  <script>
-    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const backendURL = isLocal ? 'http://127.0.0.1:5000/upload' : 'https://jd-cv-match-backend.onrender.com/upload';
-
-    document.getElementById("uploadForm").addEventListener("submit", async function (e) {
-      e.preventDefault();
-      const form = e.target;
-      const formData = new FormData(form);
-
-      const resultDiv = document.getElementById('result');
-      resultDiv.innerHTML = "<p><em>Processing... Please wait.</em></p>";
-
-      try {
-        const response = await fetch(backendURL, {
-          method: 'POST',
-          body: formData
+    <h1>IntelliHire - Resume Screener</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <label>Select up to 5 CVs:</label><br>
+        <input type="file" name="cvs" multiple required><br>
+        <label>Select 1 JD:</label><br>
+        <input type="file" name="jd" required><br>
+        <button type="submit">Upload & Match</button>
+    </form>
+    <div id="result"></div>
+    <script>
+        document.getElementById("uploadForm").addEventListener("submit", async function(e) {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            try {
+                const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+                const backendURL = isLocalhost ? "http://127.0.0.1:5000" : "https://jd-cv-match-backend.onrender.com";
+                const response = await fetch(`${backendURL}/upload`, { method: 'POST', body: formData });
+                if (!response.ok) throw new Error('Network response was not ok');
+                const result = await response.json();
+                console.log(result); // for debugging
+                const resultDiv = document.getElementById('result');
+                resultDiv.innerHTML = "<h2>Match Results</h2>";
+                const table = document.createElement('table');
+                table.innerHTML = `<thead>
+                                    <tr>
+                                        <th>File Name</th>
+                                        <th>Match Score (%)</th>
+                                    </tr>
+                                   </thead>
+                                   <tbody>
+                                    ${Object.entries(result).map(([file, data]) => `
+                                        <tr>
+                                            <td>${file}</td>
+                                            <td>${data.match_score.toFixed(2)}%</td>
+                                        </tr>
+                                    `).join('')}
+                                   </tbody>`;
+                resultDiv.appendChild(table);
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('result').textContent = 'Error uploading files or fetching result.';
+            }
         });
-
-        if (!response.ok) throw new Error('Failed to upload');
-
-        const result = await response.json();
-
-        resultDiv.innerHTML = "<h2>Match Results</h2>";
-        const table = document.createElement('table');
-        table.innerHTML = `
-          <thead>
-            <tr>
-              <th>CV File Name</th>
-              <th>Match Score (%)</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${Object.entries(result).map(([file, data]) => `
-              <tr>
-                <td>${file}</td>
-                <td>${data.match_score.toFixed(2)}%</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        `;
-
-        resultDiv.appendChild(table);
-
-      } catch (err) {
-        console.error(err);
-        resultDiv.innerHTML = "<p style='color:red;'>Something went wrong. Please try again.</p>";
-      }
-    });
-  </script>
+    </script>
 </body>
 </html>
