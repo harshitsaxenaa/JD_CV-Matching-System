@@ -1,11 +1,14 @@
 from flask import Flask, request, jsonify, send_from_directory
-from utils.parser import extract_text
 from flask_cors import CORS
+from utils.parser import extract_text
 from utils.matcher import match_cvs_to_jd
 import os
 
-app = Flask(__name__, static_folder=os.path.join(os.path.pardir, 'frontend'), static_url_path='')
+app = Flask(__name__, app = Flask(__name__, static_folder='../frontend', static_url_path=''), static_url_path='')
+
+
 CORS(app, resources={r"/*": {"origins": "https://jd-cv-matching-system.onrender.com"}})
+
 
 
 UPLOAD_FOLDER = 'backend/uploads'
