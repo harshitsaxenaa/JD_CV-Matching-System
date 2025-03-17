@@ -1,13 +1,13 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from utils.parser import extract_text
 from utils.matcher import match_cvs_to_jd
-from flask_cors import CORS
 import os
 
 app = Flask(__name__)
 
-# Restrict to only your frontend domain (more secure)
-CORS(app, origins=["https://jd-cv-match-frontend.onrender.com", "http://localhost:5500", "http://127.0.0.1:5500"], supports_credentials=True)
+# Allow all origins for local testing
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 UPLOAD_FOLDER = 'backend/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -32,7 +32,6 @@ def upload_files():
         results[cv_file.filename] = {"match_score": round(score * 100, 2)}
 
     return jsonify(results)
-
 
 if __name__ == '__main__':
     app.run(debug=True)
