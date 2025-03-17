@@ -7,7 +7,8 @@ import os
 from flask_cors import CORS
 
 app = Flask(__name__, static_folder='../frontend', static_url_path='')
-CORS(app) 
+CORS(app, origins=["https://jd-cv-match-frontend.onrender.com"])
+
  
 
 UPLOAD_FOLDER = 'backend/uploads'
@@ -16,7 +17,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 @app.after_request
 def add_cors_headers(response):
-    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Origin"] = "https://jd-cv-match-frontend.onrender.com"
     response.headers["Access-Control-Allow-Headers"] = "Content-Type"
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
     return response
