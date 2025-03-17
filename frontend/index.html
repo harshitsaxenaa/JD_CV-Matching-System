@@ -6,8 +6,8 @@
     <style>
         body {
             margin: 0;
-            font-family: Arial, sans-serif;
-            background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to right, #1e3c72, #2a5298);
             color: white;
             display: flex;
             flex-direction: column;
@@ -16,54 +16,118 @@
             min-height: 100vh;
             padding: 20px;
         }
-        h1 { animation: fadeIn 2s ease-in-out; }
+
+        h1 {
+            animation: fadeIn 2s ease-in-out;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px #000;
+        }
+
         form {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            background: rgba(255, 255, 255, 0.08);
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
             animation: slideIn 2s ease;
             width: 100%;
             max-width: 500px;
+            backdrop-filter: blur(10px);
         }
+
         input, button {
-            margin: 10px 0;
-            padding: 10px;
-            border-radius: 10px;
+            margin: 12px 0;
+            padding: 12px;
+            border-radius: 12px;
             border: none;
             width: 100%;
+            font-size: 1em;
         }
+
+        input[type="file"] {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
         button {
             background: #00c6ff;
+            background: linear-gradient(to right, #0072ff, #00c6ff);
             color: white;
             cursor: pointer;
             font-weight: bold;
+            transition: background 0.3s ease, transform 0.2s ease;
         }
+
+        button:hover {
+            background: linear-gradient(to right, #00c6ff, #0072ff);
+            transform: scale(1.02);
+        }
+
         #result {
             margin-top: 30px;
             width: 100%;
             max-width: 700px;
             animation: fadeIn 1s ease-in-out;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
             background: rgba(255, 255, 255, 0.1);
             color: white;
-            border-radius: 10px;
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.3);
         }
+
         th, td {
-            padding: 12px 15px;
+            padding: 14px 18px;
             border: 1px solid #ccc;
             text-align: left;
         }
-        th { background-color: #1f3b4d; }
-        tr:nth-child(even) { background-color: rgba(255, 255, 255, 0.05); }
-        tr:hover { background-color: rgba(255, 255, 255, 0.1); }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes slideIn { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
+
+        th {
+            background-color: #0b2e4e;
+        }
+
+        tr:nth-child(even) {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        tr:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Loader Styles */
+        .loader {
+            border: 6px solid rgba(255, 255, 255, 0.2);
+            border-top: 6px solid #00c6ff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #loadingText {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 1.1em;
+        }
     </style>
 </head>
 <body>
@@ -75,20 +139,32 @@
         <input type="file" name="jd" required><br>
         <button type="submit">Upload & Match</button>
     </form>
+
     <div id="result"></div>
+
     <script>
         document.getElementById("uploadForm").addEventListener("submit", async function(e) {
             e.preventDefault();
             const form = e.target;
             const formData = new FormData(form);
+            const resultDiv = document.getElementById('result');
+
+            // Show loader while waiting
+            resultDiv.innerHTML = `
+                <div class="loader"></div>
+                <div id="loadingText">Processing files and matching resumes... Please wait ⏳</div>
+            `;
+
             try {
                 const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
                 const backendURL = isLocalhost ? "http://127.0.0.1:5000" : "https://jd-cv-match-backend.onrender.com";
+
                 const response = await fetch(`${backendURL}/upload`, { method: 'POST', body: formData });
                 if (!response.ok) throw new Error('Network response was not ok');
+
                 const result = await response.json();
                 console.log(result); // for debugging
-                const resultDiv = document.getElementById('result');
+
                 resultDiv.innerHTML = "<h2>Match Results</h2>";
                 const table = document.createElement('table');
                 table.innerHTML = `<thead>
@@ -108,7 +184,7 @@
                 resultDiv.appendChild(table);
             } catch (error) {
                 console.error('Error:', error);
-                document.getElementById('result').textContent = 'Error uploading files or fetching result.';
+                resultDiv.innerHTML = '<p style="color: #ff8080;">❌ Error uploading files or fetching result.</p>';
             }
         });
     </script>
