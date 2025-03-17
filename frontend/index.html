@@ -1,74 +1,155 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>IntelliHire - Resume Matcher</title>
-    <style>
-        /* Same styles as before */
-        /* Styles omitted for brevity */
-    </style>
+  <meta charset="UTF-8">
+  <title>IntelliHire - Resume Matcher</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    h1 {
+      animation: fadeIn 2s ease-in-out;
+    }
+
+    form {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+      animation: slideIn 2s ease;
+      width: 100%;
+      max-width: 500px;
+    }
+
+    input, button {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      width: 100%;
+    }
+
+    button {
+      background: #00c6ff;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    #result {
+      margin-top: 30px;
+      width: 100%;
+      max-width: 700px;
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+
+    th, td {
+      padding: 12px 15px;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+
+    th {
+      background-color: #1f3b4d;
+    }
+
+    tr:nth-child(even) {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    tr:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-30px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+  </style>
 </head>
 <body>
-    <h1>IntelliHire - Resume Screener</h1>
-    <form id="uploadForm" enctype="multipart/form-data">
-        <label>Select up to 5 CVs:</label><br>
-        <input type="file" name="cvs" multiple required><br>
-        <label>Select 1 JD:</label><br>
-        <input type="file" name="jd" required><br>
-        <button type="submit">Upload & Match</button>
-    </form>
-    <div id="result"></div>
+  <h1>IntelliHire - Resume Screener</h1>
+  <form id="uploadForm" enctype="multipart/form-data">
+    <label>Select up to 5 CVs:</label><br>
+    <input type="file" name="cvs" multiple required><br>
+    <label>Select 1 JD:</label><br>
+    <input type="file" name="jd" required><br>
+    <button type="submit">Upload & Match</button>
+  </form>
+  <div id="result"></div>
 
-    <script>
-        document.getElementById("uploadForm").addEventListener("submit", async function(e) {
-            e.preventDefault();
-            const form = e.target;
-            const formData = new FormData(form);
+  <script>
+    document.getElementById("uploadForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const form = e.target;
+      const formData = new FormData(form);
 
-            try {
-                const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-                const backendURL = isLocalhost
-                    ? "http://127.0.0.1:5000"
-                    : "https://your-backend-service.onrender.com";
+      try {
+        const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+        const backendURL = isLocalhost ? "http://127.0.0.1:5000" : "https://intellihire-backend.onrender.com";
 
-                const response = await fetch(`${backendURL}/upload`, {  // Fixed string interpolation issue
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (!response.ok) throw new Error('Network response was not ok');
-
-                const result = await response.json();
-                console.log(result); // For debugging
-
-                const resultDiv = document.getElementById('result');
-                resultDiv.innerHTML = "<h2>Match Results</h2>";
-
-                const table = document.createElement('table');
-                table.innerHTML = `
-                    <thead>
-                        <tr>
-                            <th>File Name</th>
-                            <th>Match Score (%)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${Object.entries(result).map(([file, data]) => `
-                            <tr>
-                                <td>${file}</td>
-                                <td>${data.match_score.toFixed(2)}%</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                `;
-
-                resultDiv.appendChild(table);
-
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('result').textContent = 'Error uploading files or fetching result.';
-            }
+        const response = await fetch(`${backendURL}/upload`, {
+          method: 'POST',
+          body: formData
         });
-    </script>
+
+        if (!response.ok) throw new Error('Network response was not ok');
+
+        const result = await response.json();
+        console.log(result); // Debugging
+
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = "<h2>Match Results</h2>";
+
+        const table = document.createElement('table');
+        table.innerHTML = `
+          <thead>
+            <tr>
+              <th>File Name</th>
+              <th>Match Score (%)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${Object.entries(result).map(([file, data]) => `
+              <tr>
+                <td>${file}</td>
+                <td>${data.match_score.toFixed(2)}%</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        `;
+
+        resultDiv.appendChild(table);
+      } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('result').textContent = 'Error uploading files or fetching result.';
+      }
+    });
+  </script>
 </body>
 </html>
