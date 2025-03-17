@@ -113,7 +113,7 @@
         const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
         const backendURL = isLocalhost ? "http://127.0.0.1:5000" : "https://jd-cv-match-backend.onrender.com";
 
-        const response = await fetch(`${backendURL}/upload`, {
+        const response = await fetch('https://jd-cv-match-backend.onrender.com/upload', {
           method: 'POST',
           body: formData
         });
