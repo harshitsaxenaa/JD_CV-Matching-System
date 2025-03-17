@@ -5,12 +5,7 @@ from utils.matcher import match_cvs_to_jd
 import os
 
 app = Flask(__name__, static_folder='../frontend', static_url_path='')
-
-
-
 CORS(app, resources={r"/*": {"origins": "https://jd-cv-matching-system.onrender.com"}})
-
-
 
 UPLOAD_FOLDER = 'backend/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -25,28 +20,24 @@ def serve_static_files(path):
 
 @app.route('/upload', methods=['POST'])
 def upload_files():
-    jd_file = request.files['jd']
-    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+    jd_file = request.files.get('jd')
+    cv_files = request.files.getlist('cvs')
+
+    if not jd_file or not cv_files:
+        return jsonify({'error': 'Missing JD or CV files'}), 400
+
     jd_path = os.path.join(app.config['UPLOAD_FOLDER'], jd_file.filename)
     jd_file.save(jd_path)
     jd_text = extract_text(jd_path)
 
-    cvs = request.files.getlist('cvs')
-    results = {}
-    for cv_file in cvs:
+    cv_texts = []
+    for cv_file in cv_files:
         cv_path = os.path.join(app.config['UPLOAD_FOLDER'], cv_file.filename)
         cv_file.save(cv_path)
-        cv_text = extract_text(cv_path)
-        score = match_cvs_to_jd(jd_text, cv_text)
-        results[cv_file.filename] = {"match_score": round(score * 100, 2)}
+        text = extract_text(cv_path)
+        cv_texts.append((cv_file.filename, text))
 
-    return jsonify(results)
-
-@app.route("/health", methods=["GET"])
-def health():
-    return jsonify({"message": "JD-CV Matching Backend is Live "}), 200
-
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
-
+    result = match_cvs_to_jd(jd_text, cv_texts)
+    response = jsonify(result)
+    response.headers.add("Access-Control-Allow-Origin", "https://jd-cv-matching-system.onrender.com")
+    return response
