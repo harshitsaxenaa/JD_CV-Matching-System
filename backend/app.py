@@ -1,62 +1,36 @@
-from flask import Flask, request, jsonify, send_from_directory
-from flask_cors import CORS
+from flask import Flask, request, jsonify
 from utils.parser import extract_text
 from utils.matcher import match_cvs_to_jd
+from flask_cors import CORS
 import os
 
-from flask_cors import CORS
-
-app = Flask(__name__, static_folder='../frontend', static_url_path='')
-CORS(app, origins=["https://jd-cv-match-frontend.onrender.com"])
-
- 
+app = Flask(__name__)
+CORS(app)  # Allows frontend from any domain
 
 UPLOAD_FOLDER = 'backend/uploads'
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-@app.after_request
-def add_cors_headers(response):
-    response.headers["Access-Control-Allow-Origin"] = "https://jd-cv-match-frontend.onrender.com"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
-    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-    return response
-
-@app.route('/')
-def serve_frontend():
-    return send_from_directory(app.static_folder, 'index.html')
-
-@app.route('/<path:path>')
-def serve_static_files(path):
-    return send_from_directory(app.static_folder, path)
 
 @app.route('/upload', methods=['POST'])
 def upload_files():
-    jd_file = request.files.get('jd')
-    cv_files = request.files.getlist('cvs')
-    if not jd_file or not cv_files:
-        return jsonify({'error': 'Missing JD or CV files'}), 400
-
-    print(f"[+] Received files: {jd_file.filename}, {[cv.filename for cv in cv_files]}")
+    jd_file = request.files['jd']
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
     jd_path = os.path.join(app.config['UPLOAD_FOLDER'], jd_file.filename)
     jd_file.save(jd_path)
+
     jd_text = extract_text(jd_path)
 
-    cv_texts = []
-    for cv_file in cv_files:
+    cvs = request.files.getlist('cvs')
+    results = {}
+    for cv_file in cvs:
         cv_path = os.path.join(app.config['UPLOAD_FOLDER'], cv_file.filename)
         cv_file.save(cv_path)
-        text = extract_text(cv_path)
-        cv_texts.append((cv_file.filename, text))
+        cv_text = extract_text(cv_path)
+        score = match_cvs_to_jd(jd_text, cv_text)
+        results[cv_file.filename] = {"match_score": round(score * 100, 2)}
 
-    result = match_cvs_to_jd(jd_text, cv_texts)
-    return jsonify(result)
-
-
-
+    return jsonify(results)
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))  # use Render’s port
-    app.run(host='0.0.0.0', port=port)        # bind to all interfaces
-
+    port = int(os.environ.get('PORT', 5000))  
+    app.run(host='0.0.0.0', port=port)        
