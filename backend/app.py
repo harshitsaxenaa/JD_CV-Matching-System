@@ -5,15 +5,15 @@ from utils.matcher import match_cvs_to_jd
 import os
 
 app = Flask(__name__, static_folder='../frontend', static_url_path='')
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})  
 
-UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER", "/tmp/uploads")  # Use Render's temporary storage
+UPLOAD_FOLDER = 'backend/uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 @app.after_request
 def add_cors_headers(response):
-    response.headers["Access-Control-Allow-Origin"] = request.headers.get("Origin", "*")  # Allows dynamic origins
+    response.headers["Access-Control-Allow-Origin"] = "*"
     response.headers["Access-Control-Allow-Headers"] = "Content-Type"
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
     return response
@@ -30,11 +30,10 @@ def serve_static_files(path):
 def upload_files():
     jd_file = request.files.get('jd')
     cv_files = request.files.getlist('cvs')
-
     if not jd_file or not cv_files:
         return jsonify({'error': 'Missing JD or CV files'}), 400
 
-    print(f"[LOG] Received files: {jd_file.filename}, {[cv.filename for cv in cv_files]}")
+    print(f"[+] Received files: {jd_file.filename}, {[cv.filename for cv in cv_files]}")
 
     jd_path = os.path.join(app.config['UPLOAD_FOLDER'], jd_file.filename)
     jd_file.save(jd_path)
@@ -48,9 +47,4 @@ def upload_files():
         cv_texts.append((cv_file.filename, text))
 
     result = match_cvs_to_jd(jd_text, cv_texts)
-    response = jsonify(result)
-    response.headers.add("Access-Control-Allow-Origin", request.headers.get("Origin", "*"))
-    return response
-
-if __name__ == '__main__':
-    app.run(debug=True)
+    return jsonify(result)
