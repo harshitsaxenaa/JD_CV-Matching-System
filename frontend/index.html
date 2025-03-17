@@ -100,10 +100,15 @@
             const formData = new FormData(form);
 
             try {
-                const response = await fetch('http://127.0.0.1:5000/upload', {
-                    method: 'POST',
-                    body: formData
-                });
+                const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+		        const backendURL = isLocalhost
+    			    ? "http://127.0.0.1:5000"
+    			    : "https://intellihire-backend.onrender.com";
+
+		        const response = await fetch(`${backendURL}/upload`, {
+    			    method: 'POST',
+    			    body: formData
+		        });
 
                 if (!response.ok) throw new Error('Network response was not ok');
 
