@@ -4,8 +4,11 @@ from utils.parser import extract_text
 from utils.matcher import match_cvs_to_jd
 import os
 
+from flask_cors import CORS
+
 app = Flask(__name__, static_folder='../frontend', static_url_path='')
-CORS(app, resources={r"/*": {"origins": "*"}})  
+CORS(app) 
+ 
 
 UPLOAD_FOLDER = 'backend/uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
