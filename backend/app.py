@@ -4,10 +4,16 @@ from utils.parser import extract_text
 from utils.matcher import match_cvs_to_jd
 import os
 
-app = Flask(__name__)
 
-# Allow all origins for local testing
+app = Flask(__name__, static_folder='../frontend', static_url_path='')
 CORS(app, resources={r"/*": {"origins": "*"}})
+
+@app.after_request
+def add_cors_headers(response):
+    response.headers["Access-Control-Allow-Origin"] = "https://jd-cv-match-frontend.onrender.com"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    return response
 
 UPLOAD_FOLDER = 'backend/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -34,4 +40,5 @@ def upload_files():
     return jsonify(results)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))   
+    app.run(host='0.0.0.0', port=port)        
