@@ -5,7 +5,9 @@ from flask_cors import CORS
 import os
 
 app = Flask(__name__)
-CORS(app)  # Allows frontend from any domain
+
+# Restrict to only your frontend domain (more secure)
+CORS(app, origins=["https://jd-cv-match-frontend.onrender.com", "http://localhost:5500", "http://127.0.0.1:5500"], supports_credentials=True)
 
 UPLOAD_FOLDER = 'backend/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -13,8 +15,8 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 @app.route('/upload', methods=['POST'])
 def upload_files():
     jd_file = request.files['jd']
-    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     jd_path = os.path.join(app.config['UPLOAD_FOLDER'], jd_file.filename)
     jd_file.save(jd_path)
 
@@ -31,6 +33,6 @@ def upload_files():
 
     return jsonify(results)
 
+
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))  
-    app.run(host='0.0.0.0', port=port)        
+    app.run(debug=True)
