@@ -48,3 +48,11 @@ def upload_files():
 
     result = match_cvs_to_jd(jd_text, cv_texts)
     return jsonify(result)
+
+
+
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))  # use Render’s port
+    app.run(host='0.0.0.0', port=port)        # bind to all interfaces
+
